@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Remote Controller</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.2/nipplejs.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface-2: #1a1a2e;
+            --border: #2a2a3e;
+            --accent: #6c63ff;
+            --accent-glow: rgba(108, 99, 255, 0.3);
+            --accent-2: #00d4aa;
+            --text: #e8e8f0;
+            --text-dim: #6e6e8a;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: none;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            padding-top: calc(12px + var(--safe-top));
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1 .icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            padding: 5px 10px;
+            border-radius: 16px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--danger);
+            transition: background 0.3s;
+        }
+
+        .status-dot.connected {
+            background: var(--success);
+            box-shadow: 0 0 8px rgba(46, 213, 115, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 4px rgba(46, 213, 115, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 12px rgba(46, 213, 115, 0.6);
+            }
+        }
+
+        /* Tabs for mobile */
+        .tabs {
+            display: none;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tabs-inner {
+            display: flex;
+            min-width: 100%;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px 12px;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* Main layout */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: calc(16px + var(--safe-bottom));
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .card-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        /* Joystick + Mouse section */
+        .joystick-section {
+            display: flex;
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .joystick-card {
+            flex: 1;
+        }
+
+        #joystick-zone {
+            width: 100%;
+            height: 200px;
+            border-radius: 12px;
+            background: var(--surface-2);
+            border: 2px dashed var(--border);
+            position: relative;
+            touch-action: none;
+        }
+
+        /* Mouse buttons */
+        .mouse-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 130px;
+        }
+
+        .mouse-btn {
+            flex: 1;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface-2);
+            color: var(--text);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.1s;
+            user-select: none;
+            min-height: 44px;
+            -webkit-user-select: none;
+        }
+
+        .mouse-btn:active {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(0.96);
+        }
+
+        .mouse-btn.primary {
+            background: linear-gradient(135deg, var(--accent), #5a52d5);
+            border-color: var(--accent);
+        }
+
+        .mouse-btn.primary:active {
+            background: linear-gradient(135deg, #5a52d5, #4840b0);
+        }
+
+        /* Scroll */
+        .scroll-section {
+            display: flex;
+            gap: 8px;
+        }
+
+        .scroll-btn {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface-2);
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.1s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .scroll-btn:active {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(0.96);
+        }
+
+        /* Sensitivity slider */
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .slider-row label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            white-space: nowrap;
+        }
+
+        .slider-row input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--surface-2);
+            outline: none;
+        }
+
+        .slider-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .slider-value {
+            font-size: 0.8rem;
+            color: var(--accent);
+            font-weight: 600;
+            min-width: 24px;
+            text-align: right;
+        }
+
+        /* Keyboard */
+        .keyboard-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface-2);
+            color: var(--text);
+            font-size: 16px;
+            /* prevents iOS zoom */
+            font-family: -apple-system, system-ui, sans-serif;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .keyboard-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .keyboard-input::placeholder {
+            color: var(--text-dim);
+        }
+
+        /* Special keys */
+        .special-keys {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .special-key {
+            padding: 10px 4px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface-2);
+            color: var(--text);
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.1s;
+            user-select: none;
+            -webkit-user-select: none;
+            text-align: center;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .special-key:active {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(0.94);
+        }
+
+        /* Hotkeys grid */
+        .hotkeys-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .hotkey-btn {
+            padding: 12px 6px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface-2);
+            color: var(--text);
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.1s;
+            user-select: none;
+            -webkit-user-select: none;
+            text-align: center;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hotkey-btn:active {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(0.94);
+        }
+
+        /* Connection overlay */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 10, 15, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.3s;
+        }
+
+        .overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .overlay-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .overlay-content p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .overlay-content .url-hint {
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            opacity: 0.7;
+        }
+
+        /* Nipple.js overrides */
+        .back {
+            background: var(--surface-2) !important;
+            border: 2px solid var(--border) !important;
+        }
+
+        .front {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2)) !important;
+            border: none !important;
+        }
+
+        /* ===== MOBILE RESPONSIVE ===== */
+        @media (max-width: 700px) {
+            .tabs {
+                display: flex;
+            }
+
+            .tab-content {
+                display: none;
+            }
+
+            .tab-content.active {
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .container {
+                padding: 0;
+                gap: 0;
+                padding-bottom: var(--safe-bottom);
+            }
+
+            .card {
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                border-bottom: none;
+            }
+
+            .card:first-child {
+                border-top: none;
+            }
+
+            /* Tab 1: Muis */
+            .joystick-section {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .joystick-card {
+                border-bottom: 1px solid var(--border) !important;
+            }
+
+            #joystick-zone {
+                height: 42vh;
+                border-radius: 12px;
+            }
+
+            .mouse-buttons {
+                min-width: unset;
+            }
+
+            .mouse-buttons-row {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                margin-bottom: 8px;
+            }
+
+            .mouse-btn {
+                min-height: 52px;
+                font-size: 0.85rem;
+                border-radius: 14px;
+            }
+
+            .scroll-section {
+                gap: 8px;
+            }
+
+            .scroll-btn {
+                min-height: 48px;
+                font-size: 1.2rem;
+                border-radius: 14px;
+            }
+
+            /* Tab 2: Toetsen */
+            .special-keys {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 6px;
+            }
+
+            .special-key {
+                min-height: 48px;
+                font-size: 0.78rem;
+                border-radius: 12px;
+            }
+
+            /* Tab 3: Sneltoetsen */
+            .hotkeys-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .hotkey-btn {
+                min-height: 54px;
+                font-size: 0.82rem;
+                border-radius: 14px;
+            }
+        }
+
+        /* Extra small phones */
+        @media (max-width: 380px) {
+            .special-keys {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .hotkeys-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            #joystick-zone {
+                height: 36vh;
+            }
+        }
+
+        /* Landscape mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .header {
+                padding: 6px 12px;
+            }
+
+            .header h1 {
+                font-size: 0.9rem;
+            }
+
+            .tabs .tab {
+                padding: 6px 10px;
+                font-size: 0.65rem;
+            }
+
+            #joystick-zone {
+                height: 35vh;
+            }
+
+            .card {
+                padding: 10px 14px;
+            }
+        }
+
+        /* Desktop */
+        @media (min-width: 701px) {
+            .tab-content {
+                display: flex !important;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .container {
+                padding: 20px;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Connection overlay -->
+    <div class="overlay" id="overlay">
+        <div class="overlay-content">
+            <div class="spinner"></div>
+            <p>Verbinden met server...</p>
+            <p class="url-hint" id="urlHint"></p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>
+            <span class="icon">🎮</span>
+            Remote Controller
+        </h1>
+        <div class="status">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Verbinden...</span>
+        </div>
+    </div>
+
+    <!-- Mobile tabs -->
+    <div class="tabs" id="tabs">
+        <div class="tabs-inner">
+            <button class="tab active" data-tab="mouse">Muis</button>
+            <button class="tab" data-tab="keyboard">Toetsen</button>
+            <button class="tab" data-tab="hotkeys">Sneltoetsen</button>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="container">
+
+        <!-- TAB: Mouse -->
+        <div class="tab-content active" id="tab-mouse">
+            <div class="joystick-section">
+                <div class="card joystick-card">
+                    <div class="card-title">Muis Besturing</div>
+                    <div id="joystick-zone"></div>
+                    <div class="slider-row">
+                        <label>Snelheid</label>
+                        <input type="range" id="sensitivity" min="1" max="30" value="15">
+                        <span class="slider-value" id="sensitivityVal">10</span>
+                    </div>
+                </div>
+                <div class="card mouse-buttons">
+                    <div class="card-title">Klikken & Scrollen</div>
+                    <div class="mouse-buttons-row">
+                        <button class="mouse-btn primary" id="btnLeft">🖱 Links</button>
+                        <button class="mouse-btn" id="btnRight">🖱 Rechts</button>
+                        <button class="mouse-btn" id="btnDouble">🖱 Dubbel</button>
+                    </div>
+                    <div class="scroll-section">
+                        <button class="scroll-btn" id="scrollUp">▲ Scroll</button>
+                        <button class="scroll-btn" id="scrollDown">▼ Scroll</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Keyboard -->
+        <div class="tab-content" id="tab-keyboard">
+            <div class="card">
+                <div class="card-title">Toetsenbord</div>
+                <input type="text" class="keyboard-input" id="keyboardInput"
+                    placeholder="Typ hier om tekst te sturen..." autocomplete="off" autocapitalize="off"
+                    autocorrect="off" spellcheck="false">
+
+                <div class="special-keys">
+                    <button class="special-key" data-key="enter">Enter ↵</button>
+                    <button class="special-key" data-key="backspace">⌫</button>
+                    <button class="special-key" data-key="tab">Tab ⇥</button>
+                    <button class="special-key" data-key="escape">Esc</button>
+                    <button class="special-key" data-key="space">Spatie</button>
+                    <button class="special-key" data-key="delete">Del</button>
+                    <button class="special-key" data-key="up">↑</button>
+                    <button class="special-key" data-key="down">↓</button>
+                    <button class="special-key" data-key="left">←</button>
+                    <button class="special-key" data-key="right">→</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Hotkeys -->
+        <div class="tab-content" id="tab-hotkeys">
+            <div class="card">
+                <div class="card-title">Sneltoetsen</div>
+                <div class="hotkeys-grid">
+                    <button class="hotkey-btn" data-hotkey="ctrl,c">Ctrl+C</button>
+                    <button class="hotkey-btn" data-hotkey="ctrl,v">Ctrl+V</button>
+                    <button class="hotkey-btn" data-hotkey="ctrl,x">Ctrl+X</button>
+                    <button class="hotkey-btn" data-hotkey="ctrl,z">Ctrl+Z</button>
+                    <button class="hotkey-btn" data-hotkey="ctrl,y">Ctrl+Y</button>
+                    <button class="hotkey-btn" data-hotkey="ctrl,a">Ctrl+A</button>
+                    <button class="hotkey-btn" data-hotkey="ctrl,s">Ctrl+S</button>
+                    <button class="hotkey-btn" data-hotkey="ctrl,f">Ctrl+F</button>
+                    <button class="hotkey-btn" data-hotkey="alt,tab">Alt+Tab</button>
+                    <button class="hotkey-btn" data-hotkey="alt,f4">Alt+F4</button>
+                    <button class="hotkey-btn" data-hotkey="win">⊞ Win</button>
+                    <button class="hotkey-btn" data-hotkey="ctrl,shift,escape">Taakbeheer</button>
+                    <button class="hotkey-btn" data-hotkey="printscreen">Screenshot</button>
+                    <button class="hotkey-btn" data-hotkey="win,d">Bureaublad</button>
+                    <button class="hotkey-btn" data-hotkey="win,l">Vergrendel</button>
+                    <button class="hotkey-btn" data-hotkey="win,e">Verkenner</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const WS_PORT = 8765;
+        const WS_URL = `ws://${location.hostname || 'localhost'}:${WS_PORT}`;
+
+        let ws = null;
+        let connected = false;
+        let sensitivity = 10;
+        let joystickActive = false;
+        let joystickVector = { x: 0, y: 0 };
+        let moveInterval = null;
+
+        const overlay = document.getElementById('overlay');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const urlHint = document.getElementById('urlHint');
+
+        urlHint.textContent = `WebSocket: ${WS_URL}`;
+
+        // --- Tabs (mobile) ---
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // --- WebSocket ---
+        function connect() {
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                connected = true;
+                overlay.classList.add('hidden');
+                statusDot.classList.add('connected');
+                statusText.textContent = 'Verbonden';
+            };
+
+            ws.onclose = () => {
+                connected = false;
+                overlay.classList.remove('hidden');
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'Verbinden...';
+                setTimeout(connect, 2000);
+            };
+
+            ws.onerror = () => ws.close();
+        }
+
+        function send(data) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(data));
+            }
+        }
+
+        // --- Joystick ---
+        const joystick = nipplejs.create({
+            zone: document.getElementById('joystick-zone'),
+            mode: 'semi',
+            color: '#6c63ff',
+            size: 120,
+            dynamicPage: true,
+        });
+
+        joystick.on('move', (evt, data) => {
+            if (!data.vector) return;
+            joystickActive = true;
+            joystickVector = {
+                x: data.vector.x * data.force,
+                y: -data.vector.y * data.force
+            };
+        });
+
+        joystick.on('end', () => {
+            joystickActive = false;
+            joystickVector = { x: 0, y: 0 };
+        });
+
+        moveInterval = setInterval(() => {
+            if (joystickActive && connected) {
+                const scale = sensitivity / 5;
+                send({
+                    action: 'move',
+                    dx: Math.round(joystickVector.x * scale),
+                    dy: Math.round(joystickVector.y * scale)
+                });
+            }
+        }, 16);
+
+        // --- Sensitivity ---
+        const sensitivitySlider = document.getElementById('sensitivity');
+        const sensitivityVal = document.getElementById('sensitivityVal');
+        sensitivitySlider.addEventListener('input', () => {
+            sensitivity = parseInt(sensitivitySlider.value);
+            sensitivityVal.textContent = sensitivity;
+        });
+
+        // --- Mouse buttons ---
+        document.getElementById('btnLeft').addEventListener('click', () =>
+            send({ action: 'click', button: 'left' }));
+
+        document.getElementById('btnRight').addEventListener('click', () =>
+            send({ action: 'rightclick' }));
+
+        document.getElementById('btnDouble').addEventListener('click', () =>
+            send({ action: 'doubleclick' }));
+
+        // Long press for scroll repeat
+        function setupRepeat(el, fn) {
+            let interval = null;
+            const start = (e) => { e.preventDefault(); fn(); interval = setInterval(fn, 120); };
+            const stop = () => { clearInterval(interval); interval = null; };
+            el.addEventListener('touchstart', start, { passive: false });
+            el.addEventListener('touchend', stop);
+            el.addEventListener('touchcancel', stop);
+            el.addEventListener('mousedown', start);
+            el.addEventListener('mouseup', stop);
+            el.addEventListener('mouseleave', stop);
+        }
+
+        setupRepeat(document.getElementById('scrollUp'), () =>
+            send({ action: 'scroll', amount: 3 }));
+        setupRepeat(document.getElementById('scrollDown'), () =>
+            send({ action: 'scroll', amount: -3 }));
+
+        // --- Keyboard input ---
+        const keyboardInput = document.getElementById('keyboardInput');
+        let typingTimeout = null;
+
+        keyboardInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (!val) return;
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                send({ action: 'type', text: val });
+                keyboardInput.value = '';
+            }, 300);
+        });
+
+        keyboardInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const val = keyboardInput.value;
+                if (val) {
+                    send({ action: 'type', text: val });
+                    keyboardInput.value = '';
+                }
+                send({ action: 'keydown', key: 'enter' });
+                setTimeout(() => send({ action: 'keyup', key: 'enter' }), 50);
+            }
+        });
+
+        // --- Special keys ---
+        document.querySelectorAll('.special-key').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const key = btn.dataset.key;
+                send({ action: 'keydown', key });
+                setTimeout(() => send({ action: 'keyup', key }), 50);
+            });
+        });
+
+        // --- Hotkeys ---
+        document.querySelectorAll('.hotkey-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const keys = btn.dataset.hotkey.split(',');
+                send({ action: 'hotkey', keys });
+            });
+        });
+
+        // --- Prevent pull-to-refresh & bounce ---
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.closest('#joystick-zone')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // --- Start ---
+        connect();
+    </script>
+
+</body>
+
+</html>
