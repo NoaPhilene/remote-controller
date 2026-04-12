@@ -1,7 +1,5 @@
 import asyncio
 import json
-import webbrowser
-import os
 
 import websockets
 import pyautogui
@@ -15,6 +13,7 @@ CLIENTS = set()
 async def handle(websocket):
     CLIENTS.add(websocket)
     print(f"[+] Client connected ({len(CLIENTS)} total)")
+
     try:
         async for message in websocket:
             data = json.loads(message)

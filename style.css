@@ -1,0 +1,635 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+:root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a2e;
+    --border: #2a2a3e;
+    --accent: #6c63ff;
+    --accent-glow: rgba(108, 99, 255, 0.3);
+    --accent-2: #00d4aa;
+    --text: #e8e8f0;
+    --text-dim: #6e6e8a;
+    --danger: #ff4757;
+    --success: #2ed573;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+}
+
+/* Header */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    padding-top: calc(12px + var(--safe-top));
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header h1 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header h1 .icon {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    border-radius: 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--danger);
+    transition: background 0.3s;
+}
+
+.status-dot.connected {
+    background: var(--success);
+    box-shadow: 0 0 8px rgba(46, 213, 115, 0.5);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 4px rgba(46, 213, 115, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 12px rgba(46, 213, 115, 0.6);
+    }
+}
+
+/* Tabs */
+.tabs {
+    display: none;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.tabs-inner {
+    display: flex;
+    min-width: 100%;
+}
+
+.tab {
+    flex: 1;
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+/* Layout */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 16px;
+    padding-bottom: calc(16px + var(--safe-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.card-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.joystick-section {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+}
+
+.joystick-card {
+    flex: 1;
+}
+
+/* linker box smaller */
+.controls-card {
+    flex: 0 0 210px;
+}
+
+#joystick-zone {
+    width: 100%;
+    height: 200px;
+    border-radius: 12px;
+    background: var(--surface-2);
+    border: 2px dashed var(--border);
+    position: relative;
+    touch-action: none;
+}
+
+.card-mouse-buttons {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    max-width: 100%;
+}
+
+/* knoppen onder elkaar */
+.mouse-buttons-column {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.mouse-btn {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.1s;
+    user-select: none;
+    min-height: 44px;
+    -webkit-user-select: none;
+    padding: 10px;
+}
+
+.mouse-btn:active {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(0.96);
+}
+
+.mouse-btn.primary {
+    background: linear-gradient(135deg, var(--accent), #5a52d5);
+    border-color: var(--accent);
+}
+
+.mouse-btn.primary:active {
+    background: linear-gradient(135deg, #5a52d5, #4840b0);
+}
+
+/* Inline scroll */
+.inline-scroll-wrap {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.inline-scroll {
+    width: 28px;
+    min-width: 28px;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+}
+
+.inline-scroll-track {
+    width: 22px;
+    height: 100%;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+}
+
+.inline-scroll-thumb {
+    position: absolute;
+    left: 1px;
+    top: 1px;
+    width: 18px;
+    height: 56px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--accent), var(--accent-2));
+    box-shadow: 0 0 12px var(--accent-glow);
+    transition: transform 0.05s linear;
+}
+
+.inline-scroll.active .inline-scroll-track {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* Sensitivity */
+.slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.slider-row label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.slider-row input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--surface-2);
+    outline: none;
+}
+
+.slider-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.slider-value {
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 600;
+    min-width: 24px;
+    text-align: right;
+}
+
+/* Keyboard */
+.keyboard-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 16px;
+    font-family: -apple-system, system-ui, sans-serif;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.keyboard-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.keyboard-input::placeholder {
+    color: var(--text-dim);
+}
+
+.special-keys {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.special-key {
+    padding: 10px 4px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: all 0.1s;
+    user-select: none;
+    -webkit-user-select: none;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.special-key:active {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(0.94);
+}
+
+.hotkeys-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.hotkey-btn {
+    padding: 12px 6px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.1s;
+    user-select: none;
+    -webkit-user-select: none;
+    text-align: center;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hotkey-btn:active {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(0.94);
+}
+
+/* Overlay */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 15, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: opacity 0.3s;
+}
+
+.overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.overlay-content {
+    text-align: center;
+    padding: 20px;
+}
+
+.spinner {
+    width: 44px;
+    height: 44px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.overlay-content p {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+
+.overlay-content .url-hint {
+    margin-top: 12px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    opacity: 0.7;
+}
+
+/* Nipple.js */
+.back {
+    background: var(--surface-2) !important;
+    border: 2px solid var(--border) !important;
+}
+
+.front {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2)) !important;
+    border: none !important;
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+    .tabs {
+        display: flex;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .container {
+        padding: 0;
+        gap: 0;
+        padding-bottom: var(--safe-bottom);
+    }
+
+    .card {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+    }
+
+    .card:first-child {
+        border-top: none;
+    }
+
+    .joystick-section {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .joystick-card,
+    .controls-card {
+        flex: 1 1 auto;
+        width: 100%;
+        border-bottom: 1px solid var(--border) !important;
+    }
+
+    #joystick-zone {
+        height: 42vh;
+        border-radius: 12px;
+    }
+
+    .card-mouse-buttons {
+        gap: 14px;
+    }
+
+    .mouse-btn {
+        min-height: 52px;
+        font-size: 0.85rem;
+        border-radius: 14px;
+    }
+
+    .inline-scroll {
+        height: 180px;
+        width: 32px;
+        min-width: 32px;
+    }
+
+    .inline-scroll-track {
+        width: 26px;
+    }
+
+    .inline-scroll-thumb {
+        width: 22px;
+        height: 62px;
+    }
+
+    .special-keys {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+    }
+
+    .special-key {
+        min-height: 48px;
+        font-size: 0.78rem;
+        border-radius: 12px;
+    }
+
+    .hotkeys-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .hotkey-btn {
+        min-height: 54px;
+        font-size: 0.82rem;
+        border-radius: 14px;
+    }
+}
+
+@media (max-width: 380px) {
+    .special-keys {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .hotkeys-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    #joystick-zone {
+        height: 36vh;
+    }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    .header {
+        padding: 6px 12px;
+    }
+
+    .header h1 {
+        font-size: 0.9rem;
+    }
+
+    .tabs .tab {
+        padding: 6px 10px;
+        font-size: 0.65rem;
+    }
+
+    #joystick-zone {
+        height: 35vh;
+    }
+
+    .card {
+        padding: 10px 14px;
+    }
+
+    .inline-scroll {
+        height: 120px;
+    }
+}
+
+@media (min-width: 701px) {
+    .tab-content {
+        display: flex !important;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .container {
+        padding: 20px;
+        gap: 16px;
+    }
+}
