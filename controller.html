@@ -57,7 +57,7 @@
 
                         <div class="inline-scroll-wrap">
                             <div class="inline-scroll" id="inlineScroll">
-                                <div class="inline-scroll-track">
+                                <div class="inline-scroll-track" id="inlineScrollTrack">
                                     <div class="inline-scroll-thumb" id="inlineScrollThumb"></div>
                                 </div>
                             </div>
@@ -252,12 +252,12 @@
         document.getElementById('btnDouble').addEventListener('click', () =>
             send({ action: 'doubleclick' }));
 
-        // --- Inline scroll slider ---
+        // --- Echte scrollbar drag ---
         const inlineScroll = document.getElementById('inlineScroll');
+        const inlineScrollTrack = document.getElementById('inlineScrollTrack');
         const inlineScrollThumb = document.getElementById('inlineScrollThumb');
 
         let inlineScrollDragging = false;
-        let inlineScrollLastY = 0;
 
         function getClientY(e) {
             if (e.touches && e.touches.length > 0) return e.touches[0].clientY;
@@ -265,40 +265,38 @@
             return e.clientY;
         }
 
+        function updateThumbFromPointer(clientY) {
+            const rect = inlineScrollTrack.getBoundingClientRect();
+            const thumbHeight = inlineScrollThumb.offsetHeight;
+            const maxThumbY = rect.height - thumbHeight;
+            const rawY = clientY - rect.top - (thumbHeight / 2);
+            const clampedY = Math.max(0, Math.min(maxThumbY, rawY));
+            inlineScrollThumb.style.transform = `translateY(${clampedY}px)`;
+            return maxThumbY === 0 ? 0 : clampedY / maxThumbY;
+        }
+
         function startInlineScroll(e) {
             e.preventDefault();
             inlineScrollDragging = true;
-            inlineScrollLastY = getClientY(e);
             inlineScroll.classList.add('active');
+
+            const progress = updateThumbFromPointer(getClientY(e));
+            send({ action: 'scrollbar_start', progress });
         }
 
         function moveInlineScroll(e) {
             if (!inlineScrollDragging) return;
             e.preventDefault();
 
-            const currentY = getClientY(e);
-            const deltaY = currentY - inlineScrollLastY;
-
-            if (Math.abs(deltaY) >= 2) {
-                const amount = Math.round(-deltaY / 2);
-                if (amount !== 0) {
-                    send({ action: 'scroll', amount });
-                }
-
-                const rect = inlineScroll.getBoundingClientRect();
-                const thumbHeight = inlineScrollThumb.offsetHeight;
-                const maxThumbY = rect.height - thumbHeight;
-                const rawY = currentY - rect.top - thumbHeight / 2;
-                const clampedY = Math.max(0, Math.min(maxThumbY, rawY));
-                inlineScrollThumb.style.transform = `translateY(${clampedY}px)`;
-
-                inlineScrollLastY = currentY;
-            }
+            const progress = updateThumbFromPointer(getClientY(e));
+            send({ action: 'scrollbar_move', progress });
         }
 
         function stopInlineScroll() {
+            if (!inlineScrollDragging) return;
             inlineScrollDragging = false;
             inlineScroll.classList.remove('active');
+            send({ action: 'scrollbar_end' });
         }
 
         inlineScroll.addEventListener('touchstart', startInlineScroll, { passive: false });

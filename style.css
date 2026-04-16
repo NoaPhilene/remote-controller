@@ -38,7 +38,6 @@ body {
     overscroll-behavior: none;
 }
 
-/* Header */
 .header {
     display: flex;
     align-items: center;
@@ -108,7 +107,6 @@ body {
     }
 }
 
-/* Tabs */
 .tabs {
     display: none;
     background: var(--surface);
@@ -149,7 +147,6 @@ body {
     border-bottom-color: var(--accent);
 }
 
-/* Layout */
 .container {
     max-width: 900px;
     margin: 0 auto;
@@ -186,7 +183,6 @@ body {
     flex: 1;
 }
 
-/* linker box smaller */
 .controls-card {
     flex: 0 0 210px;
 }
@@ -208,7 +204,6 @@ body {
     max-width: 100%;
 }
 
-/* knoppen onder elkaar */
 .mouse-buttons-column {
     display: flex;
     flex-direction: column;
@@ -251,7 +246,6 @@ body {
     background: linear-gradient(135deg, #5a52d5, #4840b0);
 }
 
-/* Inline scroll */
 .inline-scroll-wrap {
     display: flex;
     align-items: stretch;
@@ -287,7 +281,7 @@ body {
     border-radius: 999px;
     background: linear-gradient(180deg, var(--accent), var(--accent-2));
     box-shadow: 0 0 12px var(--accent-glow);
-    transition: transform 0.05s linear;
+    transition: transform 0.03s linear;
 }
 
 .inline-scroll.active .inline-scroll-track {
@@ -295,7 +289,6 @@ body {
     box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-/* Sensitivity */
 .slider-row {
     display: flex;
     align-items: center;
@@ -336,7 +329,6 @@ body {
     text-align: right;
 }
 
-/* Keyboard */
 .keyboard-input {
     width: 100%;
     padding: 12px 14px;
@@ -421,7 +413,6 @@ body {
     transform: scale(0.94);
 }
 
-/* Overlay */
 .overlay {
     position: fixed;
     inset: 0;
@@ -471,7 +462,6 @@ body {
     opacity: 0.7;
 }
 
-/* Nipple.js */
 .back {
     background: var(--surface-2) !important;
     border: 2px solid var(--border) !important;
@@ -482,7 +472,6 @@ body {
     border: none !important;
 }
 
-/* Mobile */
 @media (max-width: 700px) {
     .tabs {
         display: flex;

@@ -9,8 +9,36 @@ pyautogui.PAUSE = 0
 
 CLIENTS = set()
 
+SCROLLBAR_X_MARGIN = 8
+TOP_MARGIN = 120
+BOTTOM_MARGIN = 120
+
+scrollbar_dragging = False
+
+
+def clamp(value, min_value, max_value):
+    return max(min_value, min(max_value, value))
+
+
+def get_scrollbar_position(progress: float):
+    screen_w, screen_h = pyautogui.size()
+
+    x = screen_w - SCROLLBAR_X_MARGIN
+    top_y = TOP_MARGIN
+    bottom_y = screen_h - BOTTOM_MARGIN
+
+    if bottom_y <= top_y:
+        bottom_y = top_y + 1
+
+    progress = clamp(progress, 0.0, 1.0)
+    y = int(top_y + (bottom_y - top_y) * progress)
+
+    return x, y
+
 
 async def handle(websocket):
+    global scrollbar_dragging
+
     CLIENTS.add(websocket)
     print(f"[+] Client connected ({len(CLIENTS)} total)")
 
@@ -38,6 +66,24 @@ async def handle(websocket):
                 amount = data.get("amount", 0)
                 pyautogui.scroll(amount, _pause=False)
 
+            elif action == "scrollbar_start":
+                progress = float(data.get("progress", 0))
+                x, y = get_scrollbar_position(progress)
+                pyautogui.moveTo(x, y, _pause=False)
+                pyautogui.mouseDown(button="left", _pause=False)
+                scrollbar_dragging = True
+
+            elif action == "scrollbar_move":
+                if scrollbar_dragging:
+                    progress = float(data.get("progress", 0))
+                    x, y = get_scrollbar_position(progress)
+                    pyautogui.moveTo(x, y, _pause=False)
+
+            elif action == "scrollbar_end":
+                if scrollbar_dragging:
+                    pyautogui.mouseUp(button="left", _pause=False)
+                    scrollbar_dragging = False
+
             elif action == "keydown":
                 key = data.get("key", "")
                 if key:
@@ -61,6 +107,10 @@ async def handle(websocket):
     except websockets.ConnectionClosed:
         pass
     finally:
+        if scrollbar_dragging:
+            pyautogui.mouseUp(button="left", _pause=False)
+            scrollbar_dragging = False
+
         CLIENTS.discard(websocket)
         print(f"[-] Client disconnected ({len(CLIENTS)} total)")
 
