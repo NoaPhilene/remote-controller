@@ -117,7 +117,7 @@
                     <button class="hotkey-btn" data-hotkey="ctrl,shift,escape">Taakbeheer</button>
                     <button class="hotkey-btn" data-hotkey="printscreen">Screenshot</button>
                     <button class="hotkey-btn" data-hotkey="win,d">Bureaublad</button>
-                    <button class="hotkey-btn" data-hotkey="win,l">Vergrendel</button>
+                    <button class="hotkey-btn" id="btnLock">Vergrendel</button>
                     <button class="hotkey-btn" data-hotkey="win,e">Verkenner</button>
                 </div>
             </div>
@@ -252,7 +252,19 @@
         document.getElementById('btnDouble').addEventListener('click', () =>
             send({ action: 'doubleclick' }));
 
-        // --- Echte scrollbar drag ---
+        document.querySelectorAll('.hotkey-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const hotkey = btn.dataset.hotkey;
+                if (!hotkey) return;
+                const keys = hotkey.split(',');
+                send({ action: 'hotkey', keys });
+            });
+        });
+
+        document.getElementById('btnLock').addEventListener('click', () => {
+            send({ action: 'lock' });
+        });
+
         const inlineScroll = document.getElementById('inlineScroll');
         const inlineScrollTrack = document.getElementById('inlineScrollTrack');
         const inlineScrollThumb = document.getElementById('inlineScrollThumb');
@@ -342,13 +354,6 @@
                 const key = btn.dataset.key;
                 send({ action: 'keydown', key });
                 setTimeout(() => send({ action: 'keyup', key }), 50);
-            });
-        });
-
-        document.querySelectorAll('.hotkey-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const keys = btn.dataset.hotkey.split(',');
-                send({ action: 'hotkey', keys });
             });
         });
 

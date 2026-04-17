@@ -1,5 +1,6 @@
 import asyncio
 import json
+import ctypes
 
 import websockets
 import pyautogui
@@ -34,6 +35,10 @@ def get_scrollbar_position(progress: float):
     y = int(top_y + (bottom_y - top_y) * progress)
 
     return x, y
+
+
+def lock_windows():
+    ctypes.windll.user32.LockWorkStation()
 
 
 async def handle(websocket):
@@ -83,6 +88,9 @@ async def handle(websocket):
                 if scrollbar_dragging:
                     pyautogui.mouseUp(button="left", _pause=False)
                     scrollbar_dragging = False
+
+            elif action == "lock":
+                lock_windows()
 
             elif action == "keydown":
                 key = data.get("key", "")
